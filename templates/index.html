@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f6f2">
+    <title>InvoicePilot — your private invoice desk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="#top" aria-label="InvoicePilot home"><span class="brand-mark"
+                    aria-hidden="true">i</span><span>invoice<span class="brand-light">pilot</span></span></a>
+            <div class="topbar-right"><span class="privacy-pill" id="privacy-pill"><span class="privacy-dot"></span>
+                    Private by
+                    design</span><a class="help-link" href="#how-it-works">How it works <span
+                        aria-hidden="true">↗</span></a></div>
+        </header>
+
+        <section class="intro" id="top">
+            <div>
+                <p class="eyebrow"><span class="eyebrow-line"></span> YOUR QUIETLY CLEVER FINANCE DESK</p>
+                <h1>Invoices, <span>in order.</span></h1>
+                <p class="intro-copy" id="intro-copy">Drop in a receipt. Get the details you need. Your documents stay
+                    on this device.
+                </p>
+            </div>
+            <div class="local-note"><span class="local-icon" aria-hidden="true">⌂</span><span><strong
+                        id="local-note-title">Local-first</strong><small id="local-note-copy">No cloud account
+                        needed</small></span></div>
+        </section>
+
+        <section class="workspace" aria-label="Invoice workspace">
+            <section class="card compose-card">
+                <div class="card-heading">
+                    <div><span class="step-label">01 / ADD DOCUMENT</span>
+                        <h2>Bring an invoice</h2>
+                    </div><span class="heading-icon" aria-hidden="true">＋</span>
+                </div>
+                <p class="muted">Paste invoice text or import a plain-text file to get started.</p>
+                <form id="invoice-form">
+                    <label class="sr-only" for="invoice_text">Invoice or receipt text</label>
+                    <textarea id="invoice_text" name="invoice_text" rows="10"
+                        placeholder="Paste your invoice text here…&#10;&#10;Example:&#10;Acme Studio&#10;Invoice #2049&#10;Client: Northwind Labs&#10;Brand Design — $600&#10;Total — $600"></textarea>
+                    <div class="input-footer"><label class="file-button" for="invoice-file"><span
+                                aria-hidden="true">↥</span> Import .txt<input id="invoice-file" type="file"
+                                accept=".txt,text/plain"></label><span class="char-count" id="char-count">0
+                            characters</span></div>
+                    <div class="form-actions"><button class="primary-button" id="parse-button"
+                            type="submit"><span>Organize invoice</span><span aria-hidden="true">→</span></button><button
+                            class="text-button" id="load-demo" type="button">Try sample</button><button
+                            class="text-button clear-button" id="clear-input" type="button">Clear</button></div>
+                </form>
+                <div class="security-note" id="security-note"><span aria-hidden="true">◈</span> Text is processed
+                    locally. File import
+                    supports .txt.</div>
+                <label class="hosted-consent" id="hosted-consent-row" hidden>
+                    <input id="hosted-consent" type="checkbox">
+                    <span><strong>Public demo privacy check</strong><small>I understand this hosted demo receives text
+                            on its server. I’ll use fictional or test invoice data, not real financial
+                            documents.</small></span>
+                </label>
+            </section>
+
+            <section class="card result-card" aria-live="polite">
+                <div class="result-heading">
+                    <div><span class="step-label">02 / YOUR SUMMARY</span>
+                        <h2>Invoice overview</h2>
+                    </div><span class="engine-badge" id="engine-badge"><span class="engine-dot"></span><span
+                            id="engine-label">Checking engine</span></span>
+                </div>
+                <div class="engine-message" id="model-status">Checking whether a local Ollama model is available…</div>
+                <div class="metrics-grid">
+                    <article class="metric metric-total"><span class="metric-label">INVOICE TOTAL</span><strong
+                            id="total">—</strong><span class="metric-foot" id="invoice-id">Invoice number not
+                            found</span></article>
+                    <article class="metric"><span class="metric-label">SUBTOTAL</span><strong
+                            id="subtotal">—</strong><span class="metric-foot">Before tax</span></article>
+                    <article class="metric"><span class="metric-label">TAX</span><strong id="tax">—</strong><span
+                            class="metric-foot">Tax amount detected</span></article>
+                </div>
+                <div class="reconcile-message" id="reconcile-message" aria-live="polite"><span
+                        class="reconcile-mark">✓</span><span>Compare line items + tax with the invoice total.</span>
+                </div>
+                <div class="details-row">
+                    <div class="detail"><span class="detail-icon vendor-icon"
+                            aria-hidden="true">V</span><span><small>FROM VENDOR</small><strong
+                                id="vendor">—</strong></span></div>
+                    <div class="detail"><span class="detail-icon client-icon"
+                            aria-hidden="true">C</span><span><small>BILLED TO</small><strong
+                                id="client">—</strong></span></div>
+                    <div class="detail date-detail"><span class="detail-icon date-icon"
+                            aria-hidden="true">◷</span><span><small>INVOICE DATE</small><strong
+                                id="invoice-date">—</strong></span></div>
+                </div>
+                <div class="analysis-grid">
+                    <section class="mini-panel category-panel">
+                        <div class="section-heading">
+                            <div><span class="step-label">SPENDING SNAPSHOT</span>
+                                <h3>By category</h3>
+                            </div><span class="category-count" id="category-count">0 groups</span>
+                        </div>
+                        <div id="breakdown-list" class="category-list">
+                            <p class="empty-state">Category totals will appear here.</p>
+                        </div>
+                    </section>
+                    <section class="mini-panel items-panel">
+                        <div class="section-heading">
+                            <div><span class="step-label">LINE BY LINE</span>
+                                <h3>Detected items</h3>
+                            </div><span class="category-count" id="items-count">0 items</span>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>DESCRIPTION</th>
+                                        <th>TYPE</th>
+                                        <th class="amount-cell">AMOUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="items-list">
+                                    <tr class="empty-row">
+                                        <td colspan="3">Your invoice line items will show here.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+                <div class="result-actions"><span class="result-hint" id="result-hint">Run an invoice to enable export
+                        and save.</span>
+                    <div class="action-buttons"><button class="secondary-button" id="copy-summary" type="button"
+                            disabled>Copy summary</button><button class="secondary-button" id="export-csv" type="button"
+                            disabled>Download CSV <span aria-hidden="true">↓</span></button><button class="save-button"
+                            id="save-invoice" type="button" disabled>Save on device</button></div>
+                </div>
+            </section>
+        </section>
+
+        <section class="card saved-card" aria-labelledby="saved-title">
+            <div class="saved-heading">
+                <div><span class="step-label">KEPT ON THIS BROWSER ONLY</span>
+                    <h2 id="saved-title">Saved invoices</h2>
+                </div><button class="text-button" type="button" id="clear-saved">Clear saved</button>
+            </div>
+            <div id="saved-list" class="saved-list">
+                <p class="empty-state">Nothing saved yet. Save an invoice to keep a quick local reference.</p>
+            </div>
+        </section>
+        <footer class="footer" id="how-it-works"><span><span class="footer-mark">✳</span> Small-business admin, made
+                lighter.</span><span>Rules when Ollama is away · private either way</span></footer>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+        const hostedDemo = {{ hosted_demo | tojson }};
+        const demoText = `Acme Studio
+Invoice #2049
+Date: 2026-10-12
+Client: Northwind Labs
+Brand Design - $600
+Website QA - $640
+Travel - $120
+Tax - $96.50
+Total - $1,456.50`;
+        const savedKey = 'invoicepilot.saved.v1';
+        let currentResult = null;
+        let toastTimer;
+        const form = document.getElementById('invoice-form');
+        const textarea = document.getElementById('invoice_text');
+        const modelStatus = document.getElementById('model-status');
+        const breakdownList = document.getElementById('breakdown-list');
+        const itemsList = document.getElementById('items-list');
+        const exportButton = document.getElementById('export-csv');
+        const copyButton = document.getElementById('copy-summary');
+        const saveButton = document.getElementById('save-invoice');
+
+        if (hostedDemo) {
+            document.getElementById('privacy-pill').lastChild.textContent = ' Public demo · use sample data';
+            document.getElementById('intro-copy').textContent = 'Try the invoice workflow with fictional data. This public demo processes text on its hosted server.';
+            document.getElementById('local-note-title').textContent = 'Hosted demo';
+            document.getElementById('local-note-copy').textContent = 'Use fictional invoice data only';
+            document.getElementById('security-note').lastChild.textContent = ' The hosted app receives invoice text for processing. File import supports .txt.';
+            document.getElementById('hosted-consent-row').hidden = false;
+            document.getElementById('engine-label').textContent = 'Hosted · smart rules';
+            modelStatus.textContent = 'This public demo runs on Render. After you confirm the privacy note, submitted text is processed by the hosted app; use fictional data only.';
+            document.querySelector('.footer').lastElementChild.textContent = 'Public demo · do not use real invoice data';
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value || 0));
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('visible');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('visible'), 2600);
+        }
+
+        function updateCharCount() {
+            document.getElementById('char-count').textContent = `${textarea.value.length.toLocaleString()} characters`;
+        }
+
+        function escapeCsv(value) {
+            return `"${String(value ?? '').replaceAll('"', '""')}"`;
+        }
+
+        function savedInvoices() {
+            try { return JSON.parse(localStorage.getItem(savedKey) || '[]'); } catch { return []; }
+        }
+
+        function renderSaved() {
+            const saved = savedInvoices();
+            const list = document.getElementById('saved-list');
+            list.replaceChildren();
+            if (!saved.length) {
+                const empty = document.createElement('p');
+                empty.className = 'empty-state';
+                empty.textContent = 'Nothing saved yet. Save an invoice to keep a quick local reference.';
+                list.appendChild(empty);
+                return;
+            }
+            saved.forEach((invoice) => {
+                const row = document.createElement('article');
+                row.className = 'saved-row';
+                const info = document.createElement('div');
+                info.className = 'saved-info';
+                const vendor = document.createElement('strong');
+                vendor.textContent = invoice.vendor || 'Unknown vendor';
+                const detail = document.createElement('span');
+                detail.textContent = [invoice.client || 'No client', invoice.invoice_id || 'No invoice number', invoice.date || 'No date'].join(' · ');
+                info.append(vendor, detail);
+                const amount = document.createElement('strong');
+                amount.className = 'saved-amount';
+                amount.textContent = formatMoney(invoice.total);
+                const remove = document.createElement('button');
+                remove.className = 'remove-saved';
+                remove.type = 'button';
+                remove.textContent = 'Remove';
+                remove.setAttribute('aria-label', `Remove saved invoice from ${invoice.vendor || 'unknown vendor'}`);
+                remove.addEventListener('click', () => {
+                    localStorage.setItem(savedKey, JSON.stringify(savedInvoices().filter((item) => item.id !== invoice.id)));
+                    renderSaved();
+                    showToast('Saved invoice removed from this browser.');
+                });
+                row.append(info, amount, remove);
+                list.appendChild(row);
+            });
+        }
+
+        function renderResult(data) {
+            const result = data.result || {};
+            currentResult = result;
+            const hasModel = data.model?.status === 'online';
+            const badge = document.getElementById('engine-badge');
+            badge.classList.toggle('is-online', hasModel);
+            document.getElementById('engine-label').textContent = hostedDemo
+                ? (hasModel ? 'Hosted · Ollama model' : 'Hosted · smart rules')
+                : (hasModel ? 'Ollama · local model' : 'Offline · smart rules');
+            modelStatus.textContent = hostedDemo
+                ? (hasModel
+                    ? 'This public demo sends text to the Render app and its configured Ollama endpoint. The app does not intentionally store request text; use fictional data only.'
+                    : 'This public demo processes text on Render with built-in rules. The app does not intentionally store request text; use fictional data only.')
+                : (hasModel
+                    ? 'Your local open-weight model helped organize this invoice. Data stayed on this device.'
+                    : 'Ollama isn’t running, so InvoicePilot used its built-in text rules instead. This invoice parsed locally; no document was sent to a cloud AI.');
+
+            document.getElementById('vendor').textContent = result.vendor || 'Not detected';
+            document.getElementById('client').textContent = result.client || 'Not detected';
+            document.getElementById('invoice-id').textContent = result.invoice_id ? `Invoice ${result.invoice_id}` : 'Invoice number not found';
+            document.getElementById('invoice-date').textContent = result.date || 'Not detected';
+            document.getElementById('total').textContent = formatMoney(result.total);
+            document.getElementById('subtotal').textContent = formatMoney(result.subtotal);
+            document.getElementById('tax').textContent = formatMoney(result.tax);
+
+            const calculatedTotal = Number(result.subtotal || 0) + Number(result.tax || 0);
+            const declaredTotal = Number(result.total || 0);
+            const difference = Math.round((declaredTotal - calculatedTotal) * 100) / 100;
+            const reconcile = document.getElementById('reconcile-message');
+            const reconcileMark = reconcile.querySelector('.reconcile-mark');
+            reconcile.classList.toggle('is-mismatch', Math.abs(difference) > 0.01);
+            reconcileMark.textContent = Math.abs(difference) <= 0.01 ? '✓' : '!';
+            reconcile.lastElementChild.textContent = Math.abs(difference) <= 0.01
+                ? 'Invoice total matches subtotal + tax.'
+                : `Check figures: subtotal + tax is ${formatMoney(calculatedTotal)}, ${formatMoney(Math.abs(difference))} ${difference > 0 ? 'below' : 'above'} the invoice total.`;
+
+            const categories = Object.entries(result.summary || {}).sort((a, b) => b[1] - a[1]);
+            const categoryMax = Math.max(...categories.map(([, amount]) => Number(amount)), 1);
+            breakdownList.replaceChildren();
+            document.getElementById('category-count').textContent = `${categories.length} ${categories.length === 1 ? 'group' : 'groups'}`;
+            if (!categories.length) {
+                const empty = document.createElement('p');
+                empty.className = 'empty-state';
+                empty.textContent = 'No categorized line items found in this document.';
+                breakdownList.appendChild(empty);
+            } else {
+                categories.forEach(([category, amount], index) => {
+                    const row = document.createElement('div');
+                    row.className = 'category-row';
+                    const labels = document.createElement('div');
+                    labels.className = 'category-labels';
+                    const name = document.createElement('span');
+                    name.className = 'category-name';
+                    name.textContent = category;
+                    const value = document.createElement('strong');
+                    value.textContent = formatMoney(amount);
+                    labels.append(name, value);
+                    const track = document.createElement('div');
+                    track.className = 'bar-track';
+                    const bar = document.createElement('span');
+                    bar.className = `bar-fill bar-${index % 4}`;
+                    bar.style.width = `${Math.max((Number(amount) / categoryMax) * 100, 3)}%`;
+                    track.appendChild(bar);
+                    row.append(labels, track);
+                    breakdownList.appendChild(row);
+                });
+            }
+
+            const items = result.items || [];
+            document.getElementById('items-count').textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
+            itemsList.replaceChildren();
+            if (!items.length) {
+                const row = document.createElement('tr');
+                row.className = 'empty-row';
+                const cell = document.createElement('td');
+                cell.colSpan = 3;
+                cell.textContent = 'No line items detected. Try a text-based invoice with item descriptions and amounts.';
+                row.appendChild(cell);
+                itemsList.appendChild(row);
+            } else {
+                items.forEach((item) => {
+                    const row = document.createElement('tr');
+                    [item.item || 'Untitled item', item.category || 'miscellaneous', formatMoney(item.amount)].forEach((value, index) => {
+                        const cell = document.createElement('td');
+                        cell.textContent = value;
+                        if (index === 1) cell.className = 'type-cell';
+                        if (index === 2) cell.className = 'amount-cell';
+                        row.appendChild(cell);
+                    });
+                    itemsList.appendChild(row);
+                });
+            }
+
+            [exportButton, copyButton, saveButton].forEach((button) => { button.disabled = false; });
+            document.getElementById('result-hint').textContent = `${items.length} line ${items.length === 1 ? 'item' : 'items'} · figures stay editable in your source text`;
+        }
+
+        document.getElementById('invoice-file').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!file.name.toLowerCase().endsWith('.txt')) {
+                showToast('For now, import a .txt file. You can paste text from other documents.');
+                event.target.value = '';
+                return;
+            }
+            textarea.value = await file.text();
+            updateCharCount();
+            showToast(`${file.name} loaded. Choose Organize invoice when ready.`);
+        });
+
+        textarea.addEventListener('input', updateCharCount);
+        document.getElementById('load-demo').addEventListener('click', () => {
+            textarea.value = demoText;
+            updateCharCount();
+            showToast('Sample invoice loaded.');
+        });
+        document.getElementById('clear-input').addEventListener('click', () => {
+            textarea.value = '';
+            document.getElementById('invoice-file').value = '';
+            updateCharCount();
+            textarea.focus();
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (hostedDemo && !document.getElementById('hosted-consent').checked) {
+                showToast('Confirm the hosted-demo privacy note before processing sample data.');
+                document.getElementById('hosted-consent').focus();
+                return;
+            }
+            if (!textarea.value.trim()) {
+                showToast('Paste invoice text or import a .txt file first.');
+                textarea.focus();
+                return;
+            }
+            const button = document.getElementById('parse-button');
+            button.disabled = true;
+            button.classList.add('is-loading');
+            button.querySelector('span:first-child').textContent = 'Organizing…';
+            modelStatus.textContent = 'Reading invoice text and identifying the important details…';
+            try {
+                const response = await fetch('/api/parse', { method: 'POST', body: new FormData(form) });
+                if (!response.ok) throw new Error('Invoice parsing failed. Please try again.');
+                renderResult(await response.json());
+                showToast('Invoice summary is ready.');
+            } catch (error) {
+                modelStatus.textContent = error.message;
+                showToast(error.message);
+            } finally {
+                button.disabled = false;
+                button.classList.remove('is-loading');
+                button.querySelector('span:first-child').textContent = 'Organize invoice';
+            }
+        });
+
+        copyButton.addEventListener('click', async () => {
+            if (!currentResult) return;
+            const summary = [
+                `Vendor: ${currentResult.vendor || 'Not detected'}`,
+                `Client: ${currentResult.client || 'Not detected'}`,
+                `Invoice: ${currentResult.invoice_id || 'Not detected'}`,
+                `Date: ${currentResult.date || 'Not detected'}`,
+                `Subtotal: ${formatMoney(currentResult.subtotal)}`,
+                `Tax: ${formatMoney(currentResult.tax)}`,
+                `Total: ${formatMoney(currentResult.total)}`,
+                '',
+                ...(currentResult.items || []).map((item) => `${item.item}: ${formatMoney(item.amount)} (${item.category})`),
+            ].join('\n');
+            try {
+                await navigator.clipboard.writeText(summary);
+                showToast('Invoice summary copied to clipboard.');
+            } catch {
+                showToast('Clipboard access was blocked by the browser.');
+            }
+        });
+
+        exportButton.addEventListener('click', () => {
+            if (!currentResult) return;
+            const rows = [['Description', 'Category', 'Amount'], ...(currentResult.items || []).map((item) => [item.item, item.category, item.amount])];
+            rows.push(['Subtotal', '', currentResult.subtotal], ['Tax', '', currentResult.tax], ['Invoice total', '', currentResult.total]);
+            const csv = rows.map((row) => row.map(escapeCsv).join(',')).join('\r\n');
+            const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `invoice-${currentResult.invoice_id || 'summary'}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('CSV downloaded.');
+        });
+
+        saveButton.addEventListener('click', () => {
+            if (!currentResult) return;
+            const invoice = { ...currentResult, id: crypto.randomUUID(), savedAt: new Date().toISOString() };
+            const saved = savedInvoices();
+            saved.unshift(invoice);
+            localStorage.setItem(savedKey, JSON.stringify(saved.slice(0, 12)));
+            renderSaved();
+            showToast('Invoice saved only in this browser.');
+        });
+
+        document.getElementById('clear-saved').addEventListener('click', () => {
+            localStorage.removeItem(savedKey);
+            renderSaved();
+            showToast('Local saved invoices cleared.');
+        });
+
+        textarea.value = demoText;
+        updateCharCount();
+        renderSaved();
+        if (!hostedDemo) {
+            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        }
+    </script>
+</body>
+
+</html>
