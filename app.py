@@ -11,7 +11,10 @@ app.config["MAX_CONTENT_LENGTH"] = 128 * 1024
 
 
 def is_hosted_demo():
-    return os.environ.get("INVOICEPILOT_HOSTED", "").lower() == "true"
+    return (
+        os.environ.get("INVOICEPILOT_HOSTED", "").lower() == "true"
+        or os.environ.get("RENDER", "").lower() == "true"
+    )
 
 
 def normalize_amount(value):

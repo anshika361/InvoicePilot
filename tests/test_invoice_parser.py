@@ -90,6 +90,27 @@ def test_hosted_demo_does_not_call_local_ollama_by_default(monkeypatch):
     assert invoice_app.call_local_ollama("fictional invoice") is None
 
 
+def test_render_environment_activates_hosted_demo_mode(monkeypatch):
+    import app as invoice_app
+
+    monkeypatch.setenv("RENDER", "true")
+    monkeypatch.delenv("INVOICEPILOT_HOSTED", raising=False)
+    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+    monkeypatch.setattr(
+        invoice_app.requests,
+        "post",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("unexpected Ollama call")),
+    )
+    client = invoice_app.app.test_client()
+
+    page = client.get("/")
+
+    assert invoice_app.is_hosted_demo()
+    assert invoice_app.call_local_ollama("fictional invoice") is None
+    assert b"Hosted demo" in page.data
+    assert b"fictional or test invoice data" in page.data
+
+
 def test_health_check_and_hosted_privacy_notice(monkeypatch):
     import app as invoice_app
 
